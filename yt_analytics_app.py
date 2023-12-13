@@ -37,7 +37,7 @@ def pie_plot():
                   autopct='%1.2f%%', shadow = True,
                   colors=sns.color_palette('coolwarm', n_colors=len(plt_data)), startangle=90)
 
-    ax.set_title('Distribution of Countries', fontweight='bold')
+    ax.set_title('Distribution of Countries in Dataset', fontweight='bold')
 
     st.pyplot(plt.gcf())
 
@@ -437,6 +437,7 @@ def main():
 
     st.markdown(
         """
+        <p></p><p></p></p><p></p><p></p>
         <div style="font-size: 15px;">
         <h5><b>More on Data Used</b></h5>
 
