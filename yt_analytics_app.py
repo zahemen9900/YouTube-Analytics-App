@@ -220,7 +220,7 @@ def generate_recommendations(df, model, scaled=False, encoded=False, **yt_channe
 def main():
     global data, channel_name  # Make 'data' accessible in the 'main' function
 
-    data = pd.read_csv(r"C:\Users\David Yeboah\Documents\yt_cluster_data.csv")
+    data = pd.read_csv(r"https://github.com/zahemen9900/YouTube-Analytics-App/blob/main/YouTube%20Data%20EDA/youtubers_df.csv")
 
     st.markdown(
         """
@@ -443,7 +443,7 @@ def main():
 
         <p>Because you want to be a Top YouTuber, it only makes sense to assess yourself with the Game Changers; The dataset used in this project is a curated set of the world's top 1000 YouTubers, to make assessments and help you move to the next level. We hope you loved the recommendation as much as we loved making this project 😊</p>
 
-        <p>To view the data, as well as other assets for the project, check them out on Zahemen's GitHub <a href = "https://github.com/zahemen9900/YouTube-Analytics-App">Here</a></p>
+        <p>To view the data and source code, as well as other assets for the project, check them out on Zahemen's GitHub <a href = "https://github.com/zahemen9900/YouTube-Analytics-App">Here</a></p>
         <p>Thanks for your time!</p></div>
 
         """,
