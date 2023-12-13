@@ -220,7 +220,7 @@ def generate_recommendations(df, model, scaled=False, encoded=False, **yt_channe
 def main():
     global data, channel_name  # Make 'data' accessible in the 'main' function
 
-    data = pd.read_csv(r"https://github.com/zahemen9900/YouTube-Analytics-App/blob/main/YouTube%20Data%20EDA/youtubers_df.csv")
+    data = pd.read_csv(r"https://raw.githubusercontent.com/zahemen9900/YouTube-Analytics-App/main/YouTube%20Data%20EDA/yt_cluster_data.csv")
 
     st.markdown(
         """
