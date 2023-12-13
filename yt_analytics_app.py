@@ -442,7 +442,7 @@ def main():
 
         <p>Because you want to be a Top YouTuber, it only makes sense to assess yourself with the Game Changers; The dataset used in this project is a curated set of the world's top 1000 YouTubers, to make assessments and help you move to the next level. We hope you loved the recommendation as much as we loved making this project 😊</p>
 
-        <p>To view the data, as well as other assets for the project, check them out on Zahemen's GitHub <a href = "http://www.xyz.com">Here</a></p>
+        <p>To view the data, as well as other assets for the project, check them out on Zahemen's GitHub <a href = "https://github.com/zahemen9900/YouTube-Analytics-App">Here</a></p>
         <p>Thanks for your time!</p></div>
 
         """,
