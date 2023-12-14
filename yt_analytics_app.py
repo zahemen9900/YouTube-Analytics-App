@@ -37,14 +37,15 @@ def pie_plot():
     least_22 = data['Country'].value_counts().nsmallest(22)
     plt_data.drop(least_22.index, inplace=True)
     plt_data['Other'] = least_22.sum()
+    n  = len(plt_data)
 
     fig, ax = plt.subplots(figsize=(12, 7))
     fig = plt.pie(plt_data.values, labels = plt_data.index,
                   autopct='%1.2f%%', shadow = True,
-                  colors=sns.color_palette('coolwarm', n_colors=len(plt_data)), startangle=90)
+                  colors=sns.color_palette('coolwarm', n_colors=len(plt_data)), startangle=90,
+                   explode = tuple([0.1] + (n-1) * [0]))
 
     ax.set_title('Distribution of Countries in Dataset', fontweight='bold')
-
     st.pyplot(plt.gcf())
 
 
@@ -73,10 +74,13 @@ def preferences_across_continents(df: pd.core.frame.DataFrame):
                     idx_to_drop = int(k / 4) * 3
                     least_cat = category_counts.nsmallest(idx_to_drop)
                     category_counts.drop(least_cat.index, inplace = True)
-                    category_counts['Other'] = least_cat.sum()              
+                    category_counts['Other'] = least_cat.sum()   
+
+                n = len(category_counts)           
 
                 ax.pie(category_counts.values, labels=category_counts.index, autopct = '%1.1f%%', startangle = 90,
-                        colors = sns.color_palette('Spectral', len(category_counts) + 1), shadow = True)
+                        colors = sns.color_palette('Spectral', len(category_counts) + 1), shadow = True, 
+                        explode = tuple([0.1] + (n-1) * [0]))
                 ax.set_title('Genre Popularity in {}'.format(continent))
 
             st.pyplot(plt.gcf())
@@ -271,6 +275,36 @@ def generate_recommendations(df: pd.core.frame.DataFrame, model, scaled=False, e
 def main():
     global data, channel_name  # Make 'data' and 'channel_name' accessible globally
 
+    # Create a list of section names and emojis
+    sections = [
+        "Intro 🚀",
+        "Summary Statistics 📊",
+        "Pairplot Summary And Explanations 📈",
+        "Top YouTubers in Each Category 🏆",
+        "Results from Model Training 🤖",
+        "Recommendations Section 💡",
+        "About Data 📚"
+    ]
+
+    # Create a list of section urls
+    urls = [
+        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/#youtube-channel-recommendation-app",
+        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/#some-summary-statistics-on-the-data-used-based-on-different-categories",
+        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/#a-summary-plot-for-metric-correlations-and-distributions",
+        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/#pewdiepie-mr-beast-category-3",
+        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/#results-from-model-training-validation",
+        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/#enter-your-channel-metrics",
+        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/#more-on-data-used"
+    ]
+
+    # Create a sidebar with a radio button for the table of contents
+    st.sidebar.title("Table of Contents")
+    option = st.sidebar.radio("Select a section", sections)
+
+    # Redirect the user to the selected section url
+    st.experimental_set_query_params(url=urls[sections.index(option)])
+
+
     data = get_csv_from_url()
 
     st.markdown(
@@ -336,7 +370,7 @@ def main():
 
     st.markdown(
         """
-        <div style="border-color: #d3d3d3; border-width: 4px; border-style: solid; border-radius: 10px; padding: 15px; margin: 10px; font-family: Arial, Helvetica, sans-serif;">
+        <div style="border-color: #d3d3d3; border-width: 4px; border-style: solid; border-radius: 10px; padding: 15px; margin: 10px; font-family: Arial, Helvetica, sans-serif; box-shadow: 5px 5px 10px grey;">
           <h3 style="color: gray; margin-bottom: 10px;"><b>A Detailed Exploration of Channel Categories 🔍</b></h3>
           
           <h5 style="color: blue;"><b>Category 1: Rising Stars💫</b></h5> 
@@ -381,6 +415,12 @@ def main():
         )
 
         continent_prefs = preferences_across_continents(data)
+
+        st.write(
+            """
+            Want to see all the details of the analysis? Check it out here in my **[Jupyter Notebook](https://github.com/zahemen9900/YouTube-Analytics-App/blob/main/YouTube_Data_EDA.ipynb)** 📓📊
+            """
+        )
 
     with st.expander('**Click to see the Top YouTubers in each Category!🎥**'):
 
@@ -454,10 +494,11 @@ def main():
         st.write("_** Ranked based on Popularity_")
 
 
+    st.write("Before you jump to your results, how about a quick sneak peek into the magic behind them? Trust us, it's worth it!")
 
     st.write(
         """
-        ### **Results from Model Training & Validation**
+        ### **The Magic Behind the Scenes ✨🎩 _(How We Trained and Validated Our Model)_**
         ---
 
         """
@@ -465,8 +506,8 @@ def main():
 
     st.write(
         """
-        In case you wondered, the model for making the recommendations is a **`Random Forest Regressor`** from Scikit-Learn's **`sklearn.ensemble`**, and thanks to some advanced hyperparameter-tuning with **`GridSearchCV`**, we were able to produce some pretty robust results! 💯
-        Here are summary results from training:
+        You might be curious about how we're generating the awesome recommendations for you. Well, the secret is a powerful machine learning model! We used **`Random Forest Regressor`** from Scikit-Learn, and with some clever hyperparameter-tuning with **`GridSearchCV`**, we achieved some amazing results! 🙌
+        Here are some highlights from our training process:
         """
     )
 
@@ -477,9 +518,12 @@ def main():
     'min_samples_split': [2],      # Minimum number of samples required to split a node
     'bootstrap': [True]        # Whether to use bootstrap samples when building trees
     }
-  
+
 
     rf_model = score_model(data = data, model = RandomForestClassifier(), model_params = model_params)
+
+    st.write("Check out the data we used [here](https://github.com/zahemen9900/YouTube-Analytics-App/blob/main/YouTube%20Data%20EDA/yt_cluster_data.csv)")
+  
 
     popular_countries = [
         'United States', 'India', 'Brazil', 'Mexico', 'Russia', 'Pakistan', 'Philippines', 'Indonesia',
@@ -499,7 +543,7 @@ def main():
 
     st.markdown(
         """
-        <div style="font-size: 20px;"><p>....And finally, the moment you've been waiting for; </p><p>Proceed below to check your recommendations!⏬</div>
+        <div style="padding: 20px;"><p style = "font-size: 15px;"><em>....And finally, the moment you've been waiting for; </em></p><p style = "font-size: 20px;"><b>Proceed below to check your recommendations!⏬</b></div>
 
         <p></p><p></p>
         """,
@@ -538,11 +582,11 @@ def main():
 
 
         if submit_button:
-
             st.success('Form submitted, Results are underway!')
+            time.sleep(0.5)
 
-            time.sleep(1)
-
+            with st.spinner('Loading recomendations'):
+                time.sleep(2)
 
             personalized = generate_recommendations(df = data, model = rf_model,
                          Username = channel_name, Categories = selected_category, Subscribers = n_subs, Country = selected_country, Continent = selected_continent,
@@ -551,20 +595,22 @@ def main():
 
             st.write(personalized)
 
+
     st.markdown(
         """
-        <p></p><p></p></p><p></p><p></p>
+        <p></p>
         <div style="font-size: 15px;">
         <h5><b>More on Data Used</b></h5>
 
-        <p>Because you want to be a Top YouTuber, it only makes sense to assess yourself with the Game Changers; The dataset used in this project is a curated set of the world's top 1000 YouTubers, to make assessments and help you move to the next level. We hope you loved the recommendation as much as we loved making this project 😊</p>
+        <p>As an aspiring Top YouTuber, you deserve to compare yourself with the best of the best. That's why we used a curated dataset of the world's top 1000 YouTubers, to give you accurate assessments and useful tips to level up your game. We hope you enjoyed the recommendation as much as we enjoyed making this project 😊</p>
 
-        <p>To view the data and source code, as well as other assets for the project, check them out on Zahemen's GitHub <a href = "https://github.com/zahemen9900/YouTube-Analytics-App">Here</a></p>
-        <p>Thanks for your time!</p></div>
+        <p>If you are curious about how we made this app possible, or want to explore more resources for the project, you can check out <b>Zahemen's GitHub</b> <a href = "https://github.com/zahemen9900/YouTube-Analytics-App">here</a>. You will find the source code, the data, and more.</p>
+        <p>Thank you for your time and attention!</p></div>
 
         """,
         unsafe_allow_html=True
     )
+
 
 
 if __name__ == '__main__':
