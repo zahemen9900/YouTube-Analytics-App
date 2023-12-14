@@ -275,7 +275,7 @@ def generate_recommendations(df: pd.core.frame.DataFrame, model, scaled=False, e
 def main():
     global data, channel_name  # Make 'data' and 'channel_name' accessible globally
 
-    # Create a list of section names and emojis
+    # Create a list of section names and icons
     sections = [
         "Intro 🚀",
         "Summary Statistics 📊",
@@ -288,13 +288,13 @@ def main():
 
     # Create a list of section urls
     urls = [
-        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/#youtube-channel-recommendation-app",
-        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/#some-summary-statistics-on-the-data-used-based-on-different-categories",
-        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/#a-summary-plot-for-metric-correlations-and-distributions",
-        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/#pewdiepie-mr-beast-category-3",
-        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/#results-from-model-training-validation",
-        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/#enter-your-channel-metrics",
-        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/#more-on-data-used"
+        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/?url=https%3A%2F%2Fyoutube-analytics-app-zahemen9900.streamlit.app%2F~%2F%2B%2F%23youtube-channel-recommendation-app#youtube-channel-recommendation-app",
+        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/?url=https%3A%2F%2Fyoutube-analytics-app-zahemen9900.streamlit.app%2F~%2F%2B%2F%23youtube-channel-recommendation-app#some-summary-statistics-on-the-data-used-based-on-different-categories",
+        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/?url=https%3A%2F%2Fyoutube-analytics-app-zahemen9900.streamlit.app%2F~%2F%2B%2F%23youtube-channel-recommendation-app#a-summary-plot-for-metric-correlations-and-distributions",
+        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/?url=https%3A%2F%2Fyoutube-analytics-app-zahemen9900.streamlit.app%2F~%2F%2B%2F%23youtube-channel-recommendation-app#pewdiepie-mr-beast-category-3",
+        "#https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/?url=https%3A%2F%2Fyoutube-analytics-app-zahemen9900.streamlit.app%2F~%2F%2B%2F%23youtube-channel-recommendation-app#70325f7b",
+        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/?url=https%3A%2F%2Fyoutube-analytics-app-zahemen9900.streamlit.app%2F~%2F%2B%2F%23youtube-channel-recommendation-app#enter-your-channel-metrics",
+        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/?url=https%3A%2F%2Fyoutube-analytics-app-zahemen9900.streamlit.app%2F~%2F%2B%2F%23youtube-channel-recommendation-app#more-on-data-used"
     ]
 
     # Create a sidebar with a radio button for the table of contents
