@@ -336,8 +336,8 @@ def main():
 
     st.markdown(
         """
-        <div style="background-color: #f5f5f5; border-color: #d3d3d3; border-width: 4px; border-style: solid; border-radius: 10px; padding: 15px; margin: 10px; font-family: Arial, Helvetica, sans-serif;">
-          <h3 style="color: #333; margin-bottom: 10px;"><b>A Detailed Exploration of Channel Categories 🔍</b></h3>
+        <div style="border-color: #d3d3d3; border-width: 4px; border-style: solid; border-radius: 10px; padding: 15px; margin: 10px; font-family: Arial, Helvetica, sans-serif;">
+          <h3 style="color: gray; margin-bottom: 10px;"><b>A Detailed Exploration of Channel Categories 🔍</b></h3>
           
           <h5 style="color: blue;"><b>Category 1: Rising Stars💫</b></h5> 
           <p>In this category, channels emerge with fewer visits, likes, and subscribers, steadily climbing the ranks of Top YouTubers. They embody the aspiring talents, on the verge of breaking into the mainstream.</p>
