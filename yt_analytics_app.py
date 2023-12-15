@@ -177,17 +177,18 @@ def score_model(data: pd.core.frame.DataFrame, model, model_params: dict, scaled
     
         grid_search.fit(X_train, y_train)
         col1, col2 = st.columns([1, 1])
-        st.write("**The best parameters are: `{}`**".format(grid_search.best_params_))
+
         col1.metric(label = 'Best Cross Validation Score', value = "{:.3f}".format(grid_search.best_score_))
 
-    
         model_valid = grid_search.best_estimator_
         model_valid.fit(X_train, y_train)
     
         y_preds = model_valid.predict(X_valid)
     
         col2.metric(label = 'Accuracy Score for final model', value = ' {:.3f}'.format(grid_search.score(X_valid, y_valid)))
-    
+
+        st.write("**The best parameters are:**")
+        st.write("##### **`{}`**".format(grid_search.best_params_))
     
         return model_valid
 
@@ -275,34 +276,50 @@ def generate_recommendations(df: pd.core.frame.DataFrame, model, scaled=False, e
 def main():
     global data, channel_name  # Make 'data' and 'channel_name' accessible globally
 
-    # Create a list of section names and icons
-    sections = [
-        "Intro 🚀",
-        "Summary Statistics 📊",
-        "Pairplot Summary And Explanations 📈",
-        "Top YouTubers in Each Category 🏆",
-        "Results from Model Training 🤖",
-        "Recommendations Section 💡",
-        "About Data 📚"
-    ]
-
-    # Create a list of section urls
-    urls = [
-        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/?url=https%3A%2F%2Fyoutube-analytics-app-zahemen9900.streamlit.app%2F~%2F%2B%2F%23youtube-channel-recommendation-app#youtube-channel-recommendation-app",
-        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/?url=https%3A%2F%2Fyoutube-analytics-app-zahemen9900.streamlit.app%2F~%2F%2B%2F%23youtube-channel-recommendation-app#some-summary-statistics-on-the-data-used-based-on-different-categories",
-        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/?url=https%3A%2F%2Fyoutube-analytics-app-zahemen9900.streamlit.app%2F~%2F%2B%2F%23youtube-channel-recommendation-app#a-summary-plot-for-metric-correlations-and-distributions",
-        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/?url=https%3A%2F%2Fyoutube-analytics-app-zahemen9900.streamlit.app%2F~%2F%2B%2F%23youtube-channel-recommendation-app#pewdiepie-mr-beast-category-3",
-        "#https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/?url=https%3A%2F%2Fyoutube-analytics-app-zahemen9900.streamlit.app%2F~%2F%2B%2F%23youtube-channel-recommendation-app#70325f7b",
-        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/?url=https%3A%2F%2Fyoutube-analytics-app-zahemen9900.streamlit.app%2F~%2F%2B%2F%23youtube-channel-recommendation-app#enter-your-channel-metrics",
-        "https://youtube-analytics-app-zahemen9900.streamlit.app/~/+/?url=https%3A%2F%2Fyoutube-analytics-app-zahemen9900.streamlit.app%2F~%2F%2B%2F%23youtube-channel-recommendation-app#more-on-data-used"
-    ]
-
-    # Create a sidebar with a radio button for the table of contents
-    st.sidebar.title("Table of Contents")
-    option = st.sidebar.radio("Select a section", sections)
-
-    # Redirect the user to the selected section url
-    st.experimental_set_query_params(url=urls[sections.index(option)])
+    st.set_page_config(initial_sidebar_state="collapsed")
+    with st.sidebar:
+        st.markdown(
+            """
+            <style>
+            h1 {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 24px;
+                font-weight: bold;
+                color: gray;
+            }
+            ul {
+                list-style: none;
+                padding: 0;
+            }
+            li {
+                margin: 10px;
+            }
+            a {
+                text-decoration: none;
+            }
+            a:link {
+                color: brown;
+            }
+            a:hover {
+                color: green;
+            }
+            a:visited {
+                color: brown;
+            }
+            </style>
+            <h1>Table of Contents</h1>
+            <ul>
+                <li><b>🔗<a href="#youtube-channel-recommendation-app">Intro </a></b></li>
+                <li><b>🔗<a href="#some-summary-statistics-on-the-data-used-based-on-different-categories">Summary Statistics </a></b></li>
+                <li><b>🔗<a href="#a-summary-plot-for-metric-correlations-and-distributions">Pairplot Summary And Explanations </a></b></li>
+                <li><b>🔗<a href="#pewdiepie-mr-beast-category-3">Top YouTubers in Each Category </a></b></li>
+                <li><b>🔗<a href="#70325f7b">Results from Model Training </a></b></li>
+                <li><b>🔗<a href="#enter-your-channel-metrics">Recommendations Section </a></b></li>
+                <li><b>🔗<a href="#more-on-data-used">About Data </a></b></li>
+            </ul>
+            """,
+            unsafe_allow_html=True
+        )
 
 
     data = get_csv_from_url()
@@ -498,7 +515,9 @@ def main():
 
     st.write(
         """
-        ### **The Magic Behind the Scenes ✨🎩 _(How We Trained and Validated Our Model)_**
+        ### **The Magic Behind the Scenes ✨**
+        
+        ###### _(How We Trained and Validated Our Model)_
         ---
 
         """
