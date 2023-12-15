@@ -188,7 +188,7 @@ def score_model(data: pd.core.frame.DataFrame, model, model_params: dict, scaled
         col2.metric(label = 'Accuracy Score for final model', value = ' {:.3f}'.format(grid_search.score(X_valid, y_valid)))
 
         st.write("**The best parameters are:**")
-        st.write("##### **`{}`**".format(grid_search.best_params_))
+        st.write(grid_search.best_params_)
     
         return model_valid
 
@@ -276,6 +276,8 @@ def generate_recommendations(df: pd.core.frame.DataFrame, model, scaled=False, e
 def main():
     global data, channel_name  # Make 'data' and 'channel_name' accessible globally
 
+    #creating the side-bar
+
     st.set_page_config(initial_sidebar_state="collapsed")
     with st.sidebar:
         st.markdown(
@@ -313,7 +315,7 @@ def main():
                 <li><b>🔗<a href="#some-summary-statistics-on-the-data-used-based-on-different-categories">Summary Statistics </a></b></li>
                 <li><b>🔗<a href="#a-summary-plot-for-metric-correlations-and-distributions">Pairplot Summary And Explanations </a></b></li>
                 <li><b>🔗<a href="#pewdiepie-mr-beast-category-3">Top YouTubers in Each Category </a></b></li>
-                <li><b>🔗<a href="#70325f7b">Results from Model Training </a></b></li>
+                <li><b>🔗<a href="#b40e990">Results from Model Training </a></b></li>
                 <li><b>🔗<a href="#enter-your-channel-metrics">Recommendations Section </a></b></li>
                 <li><b>🔗<a href="#more-on-data-used">About Data </a></b></li>
             </ul>
@@ -324,7 +326,7 @@ def main():
 
     data = get_csv_from_url()
 
-    st.markdown(
+    intro = st.markdown(
         """
         # <div style="font-size: 75px; font-family: 'Cambria', 'sans-serif'; text-align: left; color: brown; border-style: solid; border-width: 5px; border-radius: 10px; border-color: gray; padding: 20px; box-shadow: 5px 5px 10px grey;"><b>YouTube Channel Recommendation App</b></div>
 
@@ -334,7 +336,7 @@ def main():
     )
 
 
-    st.markdown(
+    description = st.markdown(
         """
 
         <b><p style = "font-size: 20px;">Interested in taking your YouTube Channel Likes, Subscribers and Visits to the next level but not sure how?💭🤔</p><p style = "font-size: 20px;"> Get recommendations to boost your channel here!⚡📈</p></b>
