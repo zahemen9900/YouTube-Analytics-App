@@ -5,12 +5,14 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
 from warnings import simplefilter
 
 simplefilter('ignore')
-
 
 def get_csv_from_url(url = r"https://raw.githubusercontent.com/zahemen9900/YouTube-Analytics-App/main/YouTube%20Data%20EDA/yt_cluster_data.csv"):
     df = pd.read_csv(url)
@@ -138,7 +140,7 @@ def make_pairplot():
 
 # Model Evaluation functions
 
-#@st.cache_data()
+        
 def score_model(data: pd.core.frame.DataFrame, model, model_params: dict, scaled = False, encoded = False):
     """
     Trains and evaluates a machine learning model using the provided data.
@@ -247,29 +249,136 @@ def generate_recommendations(df: pd.core.frame.DataFrame, model, scaled=False, e
     result = make_predictions(df, model, scaled=False, encoded=False, **yt_channel_kwargs)
 
     cluster_descriptions = {
-        1:  "🚀 Your channel falls into the category of **Rising Stars**. This category is characterized by channels that are emerging with fewer visits, likes, and subscribers. You are the aspiring talents, steadily climbing the ranks of Top YouTubers."
-            "Some examples of channels in this category are **Dream**, **Corpse Husband**, and **Emma Chamberlain**. They have gained millions of subscribers in a short period of time by creating unique and engaging content that appeals to a large audience."
-            "To further grow, focus on creating **unique and engaging content** that sets you apart. Leverage social media platforms to **promote your videos** and **collaborate with other creators** in your niche. You have the potential to become the next big thing on YouTube, so don't give up on your dreams. 🌟"
+            1:  """\
+                ### 🚀 **Rising Stars Category**
+
+                Congratulations! Your channel belongs to the **Rising Stars** category. This means you're on the fast track to YouTube fame. You've gained millions of subscribers in a short period by creating unique and engaging content that appeals to a large audience. To keep up the momentum and reach the next level, here are some personalized recommendations for you:
+
+                #### Some Popular Names:
+                - **Dream:** This Minecraft gamer skyrocketed to fame in 2020 with his innovative and thrilling videos. He is known for his speedruns, manhunts, and collaborations with other popular YouTubers.
+                - **Corpse Husband:** This mysterious and deep-voiced narrator started his channel in 2015, but gained massive popularity in 2020 with his horror stories and Among Us gameplay. He is also a singer and songwriter, and has collaborated with celebrities like Machine Gun Kelly.
+                - **Emma Chamberlain:** This lifestyle vlogger and influencer rose to prominence in 2018 with her relatable and humorous videos. She has since branched out into podcasting, fashion, and coffee. She was named the "Most Popular YouTuber" by The New York Times in 2019.
+
+                #### Characteristics:
+                - Gained millions of subscribers in a short period
+                - Created unique and engaging content
+                - Appeals to a large audience
+
+                #### Personalized Recommendations:
+                - **Content Innovation:** You have a knack for creating **unique and engaging content** that sets you apart from the crowd. Keep experimenting with new ideas and formats, and don't be afraid to try something different. Find out what makes your content special and amplify those elements. For example, you can use analytics to see which videos perform best, and get feedback from your fans to see what they like and want more of.
+                - **Social Media Boost:** You can leverage social media platforms to **promote your videos** and grow your fanbase. Engage with your audience on various platforms, such as Instagram, Twitter, TikTok, and Discord. Share behind-the-scenes content, teasers, polls, and giveaways. Interact with your fans by replying to their comments, messages, and tweets. This will help you increase your visibility, loyalty, and reach.
+                - **Collaboration Power:** You can collaborate with other creators in your niche to expand your audience and learn from each other. Cross-promotion can lead to rapid growth and exposure. You can also join or create a YouTube group or network with other rising stars, such as the Dream SMP, the Vlog Squad, or the Sister Squad. This will help you build relationships, create more content, and have more fun.
+                - **Consistent Effort:** You have the potential to become the next big thing on YouTube, so don't give up on your dreams. Stay consistent and passionate about your content, and your hard work will pay off. 🌟 You can also set goals and track your progress, such as reaching a certain number of views, subscribers, or revenue. Celebrate your achievements and milestones, and reward yourself for your efforts. You can also use tools and resources to help you grow your channel, such as [YouTube Creator Academy](https://www.youtube.com/creators/), [YouTube Analytics](https://studio.youtube.com/?csr=analytics), and [Biteable](https://biteable.com/).
+                """
+            ,
+
+        2: """\
+            ### 📉 **Ground Zero Category**
+
+            Your channel is in the **Ground Zero** category, which means you're probably struggling to get visits, likes, and subscribers. This category is very crowded and competitive, and it's hard to stand out from the rest.
+
+            #### Examples:
+            Some Youtuber making it big time in this category are:
+            - **The Dodo:** This channel features heartwarming stories of animals and their rescuers. It has over 11 million subscribers and billions of views. 
+            - **Tasty:** This channel showcases easy and delicious recipes for all occasions. It has over 21 million subscribers and is one of the most popular food channels on YouTube.
+            - **5-Minute Crafts:** This channel offers quick and simple DIY projects, hacks, and tips. It has over 74 million subscribers and is one of the most viewed channels on YouTube.
+
+            #### Characteristics:
+            - A lot of videos but low engagement rates
+            - Relying on quantity over quality
+            - Producing generic or clickbait content
+
+            #### Personalized Recommendations:
+            - **Content Strategy:** You need to rethink your **content strategy** and focus on quality over quantity. Instead of uploading a lot of videos that don't get much attention, try to create fewer but better videos that can attract and retain your viewers. Think about what value you can offer to your audience, and what problems you can solve for them. For example, you can use [YouTube Creator Academy](https://www.youtube.com/creators/) to learn how to plan, produce, and optimize your videos.
+            - **Audience Targeting:** You need to target a **specific audience** that can relate to your content and engage with it. Instead of trying to appeal to everyone, try to find your niche and your ideal viewer persona. Think about who they are, what they like, what they need, and how you can reach them. For example, you can use [YouTube Analytics](https://studio.youtube.com/?csr=analytics) to understand your audience's demographics, interests, and behavior.
+            - **Inspiration Analysis:** You need to analyze successful channels in your niche and get inspiration from them. Instead of copying or competing with them, try to learn from them and see what makes them popular and unique. Think about how you can differentiate yourself and offer something new or better. For example, you can use [Biteable](https://biteable.com/) to compare your channel with other channels and see how you can improve your performance.
+            - **Analytics Tools:** You need to use **analytics tools** to measure and improve your channel's performance. Instead of relying on intuition or guesswork, try to use data and insights to guide your decisions and actions. Think about what goals you want to achieve, what metrics you want to track, and what actions you want to take. For example, you can use [Google Analytics](https://studio.youtube.com/?csr=analytics) to monitor and analyze your channel's traffic, conversions, and revenue.
+            """
         ,
-        2: "📉 You find yourself in the **Ground Zero** category. Among the top YouTubers, you fall behind the most in visits, likes, and subscribers. This category is very populous and represents YouTubers on the lowest end of the spectrum."
-            "Some examples of channels in this category are **The Dodo**, **Tasty**, and **5-Minute Crafts**. They have a lot of videos but low engagement rates. They rely on quantity over quality and often produce generic or clickbait content that does not retain viewers."
-            "To rise above, consider refining your **content strategy** and targeting a **specific audience**. Analyze successful channels in your niche and incorporate similar elements into your videos to attract more engagement. You can also use **analytics tools** to understand your audience's preferences and behavior. You have the opportunity to improve your performance and stand out from the crowd. 📈"
+        3: """\
+            ### 🛡️ **Subscribers' Haven Category**
+
+            You belong to the **Subscribers' Haven** category, which means you have a large and loyal fan base that loves your content. However, you also face some challenges in terms of engagement and growth. Here are some tips to help you overcome them and take your channel to the next level.
+
+            #### Examples:
+            Some of the most successful YouTube channels in this category are:
+
+            - **PewDiePie**: The king of YouTube, with over 100 million subscribers. He is known for his gaming videos, memes, and commentary.
+            - **Mr Beast**: The philanthropist of YouTube, with over hundreds of millions of subscribers. He is known for his extravagant challenges, giveaways, and stunts.
+
+            #### Characteristics:
+            The main features of this category are:
+
+            - **Loyal fan bases**: You have a dedicated audience that watches your videos regularly and supports you through various means.
+            - **High retention rates**: Your viewers tend to watch your videos for a long time, indicating that they are interested and engaged in your content.
+            - **Less frequent posting**: You upload videos less often than other categories, which may affect your visibility and reach.
+
+            #### Recommendations:
+            To optimize your performance in this category, you should:
+
+            - **Build a stronger connection with your audience**: You already have a loyal fan base, but you can always make them feel more appreciated and involved. For example, you can interact with them more on social media, respond to their comments, ask for their feedback, or feature them in your videos.
+            - **Encourage likes, comments, and shares**: These are the main indicators of engagement on YouTube, and they can help you boost your ranking and exposure. You can ask your viewers to like, comment, and share your videos at the beginning or end of your videos, or use incentives such as giveaways, shoutouts, or polls.
+            - **Diversify your content while maintaining uniqueness**: You have a distinctive style and niche that sets you apart from other channels, but you can also explore new topics, genres, or formats that may appeal to your existing or potential viewers. For example, you can collaborate with other creators, try new trends, or experiment with different types of videos such as live streams, podcasts, or shorts.
+            - **Keep your supporters entertained and satisfied**: You have the advantage of having a solid foundation of supporters, but you also have to meet their expectations and keep them interested in your content. You can do this by maintaining a consistent quality and frequency of your videos, updating them on your plans and projects, or surprising them with something special or unexpected. 🤝
+            """
         ,
-        3: "🛡️ Welcome to **Subscribers' Haven**! Your channel boasts a substantial subscriber base but has modest likes and visits. Recognized for high retention rates, you craft popular content, albeit at a less frequent pace, resulting in a distinct engagement pattern."
-            "Some examples of channels in this category are **PewDiePie** and **Mr Beast**. They have loyal fan bases that follow their content regularly, but they do not post as often as other channels. They focus on quality over quantity and often create viral or philanthropic content that generates a lot of buzz."
-            "To thrive, focus on building a **stronger connection** with your audience. Encourage likes, comments, and shares to increase overall engagement. Consider **diversifying your content** while maintaining the unique elements that resonate with your subscribers. You can also **experiment with different formats** such as live streams, podcasts, or shorts to reach new audiences. You have the advantage of having a solid foundation of supporters, so keep them entertained and satisfied. 🤝"
+        4: """\
+                ### ⚖️ **Balancing Act Category**
+
+            You are in the **Balancing Act** category, which means you have a moderate but stable performance on YouTube. You have a decent number of visits, likes, and subscribers, and you create a variety of content that appeals to different audiences. However, you also face some challenges in terms of differentiation and growth. Here are some tips to help you stand out and reach your full potential.
+
+            #### Examples:
+            Some of the most popular YouTube channels in this category are:
+
+            - **Katy Perry**: The pop star of YouTube, with over 40 million subscribers. She is known for her music videos, behind-the-scenes, and collaborations with other celebrities.
+            - **The Ellen Show**: The talk show of YouTube, with over 38 million subscribers. She is known for her interviews, games, and pranks with famous guests and fans.
+
+            #### Characteristics:
+            The main features of this category are:
+
+            - **Decent engagement rates**: You have a fair amount of likes, comments, and shares on your videos, indicating that your viewers are interested and engaged in your content.
+            - **Creating a variety of content**: You produce different types of videos, such as entertainment, education, or lifestyle, that cater to different tastes and preferences.
+            - **No clear niche or identity**: You do not have a specific focus or theme for your channel, which may make it harder for you to attract and retain a loyal fan base.
+
+            #### Recommendations:
+            To optimize your performance in this category, you should:
+
+            - **Maintain a balance in your content**: You have the advantage of being versatile and flexible in your content creation, but you also have to be careful not to lose your identity or direction. You should balance your content between what you are passionate about and what your audience wants to see, and avoid spreading yourself too thin or jumping on every trend.
+            - **Explore collaborations with creators in adjacent niches**: You can expand your audience and exposure by collaborating with other creators who have similar or complementary content to yours. For example, you can join forces with other musicians, comedians, or influencers, and create videos that showcase your talents and personalities.
+            - **Be consistent in your content delivery**: You can increase your retention and growth rates by uploading videos regularly and consistently. You should establish a schedule and stick to it, and inform your viewers about your plans and updates. You can also use tools such as [YouTube Analytics](https://studio.youtube.com/?csr=analytics) or [Biteable](https://biteable.com/) to track your performance and optimize your content strategy.
+            - **Optimize your SEO to improve your visibility and discoverability**: You can boost your ranking and reach on YouTube by using effective keywords, titles, descriptions, tags, and thumbnails for your videos. You should also use catchy and relevant hashtags, and encourage your viewers to subscribe and turn on notifications. You can also learn more about SEO best practices from YouTube Creator Academy or other online resources.
+            - **Keep working hard and smart**: You have the potential to reach higher levels of success on YouTube, but you also have to work hard and smart to achieve your goals. You should always strive to improve your content quality and creativity, and keep learning from your feedback and analytics. You should also celebrate your achievements and milestones, and appreciate your supporters. 🚶‍♂️
+            """
         ,
-        4: "⚖️ Your channel belongs to the **Balancing Act** category. Moderate in visits, likes, and subscribers, you strike a balance on the lower spectrum, outshining Category 2 in overall metrics. You hold a middle ground, contributing to the diverse YouTube landscape."
-            "Some examples of channels in this category are **Katy Perry** and **The Ellen Show**. They have decent engagement rates but not as high as Category 5. They create a variety of content that appeals to different audiences, but they do not have a clear niche or identity."
-            "To enhance your impact, continue maintaining a **balance** in your content. Explore **collaborations** with creators in adjacent niches to expand your audience. **Consistency** in content delivery will contribute to steady growth over time. You can also **optimize your SEO** to improve your visibility and discoverability. You have the potential to reach higher levels of success, so keep working hard and smart. 🚶‍♂️"
-        ,
-        5: "👥 Congratulations on being in the **Engaging Echoes** category! Your channel boasts the highest likes and visits, yet maintains a humble subscriber count. You epitomize high engagement but wrestle with retention rates, creating a vibrant but fleeting viewership."
-            "Some examples of channels in this category are **Techno Gamerz** and **Kimberly Loaiza**. They have millions of views and likes on their videos, but they do not have as many subscribers as other channels. They create catchy or trendy content that attracts a lot of attention, but they do not have a strong bond with their viewers."
-            "To solidify your presence, work on strategies to **convert viewers into subscribers**. Consider creating **series or themed content** to encourage consistent viewership. Engage with your audience through **comments and community posts** to foster a loyal community. You can also **offer incentives** such as giveaways, shoutouts, or merch to reward your fans. You have the advantage of having a large reach, so make the most of it. 💬"
+        5: """\
+            ### 👥 **Engaging Echoes Category**
+
+            You are in the **Engaging Echoes** category, which means you have a high-performance channel that attracts millions of views and likes. You create catchy or trendy content that resonates with a wide audience. However, you also have a low subscriber count compared to other channels, which means you have a challenge in retaining your viewers and building a loyal fan base. Here are some tips to help you turn your viewers into subscribers and grow your community.
+
+            #### Examples:
+            Some of the most viral YouTube channels in this category are:
+
+            - **Techno Gamerz**: The gaming sensation of YouTube, with over 20 million subscribers. He is known for his gameplay videos, live streams, and challenges with other gamers.
+            - **Kimberly Loaiza**: The queen of YouTube in Latin America, with over 30 million subscribers. She is known for her music videos, vlogs, and collaborations with other influencers.
+
+            #### Characteristics:
+            The main features of this category are:
+
+            - **Millions of views and likes**: You have a huge reach and impact on YouTube, with your videos getting millions of views and likes in a short time. You have a knack for creating viral content that appeals to a mass audience.
+            - **Catchy or trendy content**: You produce content that is relevant, timely, or entertaining, such as music, comedy, or news. You follow the latest trends and topics, and use effective strategies to capture attention and engagement.
+            - **Not as many subscribers as other channels**: You have a lower subscriber count than other channels with similar or lower views and likes. This may indicate that your viewers are not as loyal or committed to your channel, and that they may watch your videos only once or occasionally.
+
+            #### Recommendations:
+            To optimize your performance in this category, you should:
+
+            - **Work on strategies to convert viewers into subscribers**: You have the opportunity to grow your subscriber base by converting your viewers into subscribers. You can do this by using clear and compelling calls to action, such as asking your viewers to subscribe and turn on notifications at the beginning or end of your videos, or using pop-ups, cards, or end screens to remind them. You can also use tools such as YouTube Analytics to track your conversion rate and identify areas for improvement.
+            - **Consider creating series or themed content to encourage consistent viewership**: You can increase your retention and loyalty rates by creating content that is consistent and coherent, such as series or themed content. For example, you can create a series of videos on a specific topic, genre, or format, and release them on a regular schedule. You can also create themed content based on seasons, events, or occasions, and use catchy titles and thumbnails to generate interest and anticipation. This way, you can keep your viewers hooked and coming back for more.
+            - **Engage with your audience through comments and community posts to foster a loyal community**: You can strengthen your relationship with your audience by engaging with them through comments and community posts. You can respond to their comments, ask for their feedback, opinions, or suggestions, or create polls or quizzes to interact with them. You can also use community posts to update them on your plans, projects, or personal life, or share behind-the-scenes, sneak peeks, or teasers of your upcoming videos. This way, you can make your viewers feel valued and involved, and build a loyal community around your channel.
+            - **Offer incentives such as giveaways, shoutouts, or merch to reward your fans**: You can motivate and reward your fans by offering them incentives such as giveaways, shoutouts, or merch. You can organize giveaways of products, services, or experiences that are related to your content or niche, and ask your viewers to subscribe, like, comment, or share your videos to enter. You can also give shoutouts to your fans who support you, or feature them in your videos. You can also create and sell merch such as t-shirts, hats, or mugs that represent your brand or personality, and promote them in your videos or social media. This way, you can show your appreciation and gratitude to your fans, and make them feel special and proud. 💬
+            """
     }
 
     return cluster_descriptions.get(result, "Oops, no specific information available for your cluster. 🥲")
-
 
 
 
@@ -463,7 +572,7 @@ def main():
             <p>PewDiePie is a Swedish YouTuber who is known for his gaming videos, comedy sketches, and meme reviews. He is <b>the most-subscribed individual creator</b> on YouTube with over <b>110 million subscribers</b>. Mr Beast is an American YouTuber who is famous for his expensive stunts, philanthropic acts, and viral challenges. He has over <b>80 million subscribers</b> and is one of the highest-earning YouTubers in the world.</p>
             <div class="rounded-images">
                 <img src="https://hips.hearstapps.com/hmg-prod/images/pewdiepie_gettyimages-501661286.jpg?resize=1200:*" alt="PewDiePie" width="333", height = "350">
-                <img src="https://wallpapers.com/images/hd/mr-beast-bright-screen-background-he6y102ildr4ca8q.jpg" alt="Mr Beast" width="333", height = "350">
+                <img src="https://wallpapers.com/images/hd/mr-beast-bright-screen-background-he6y102ildr4ca8q.jpg" alt="Mr Beast" width="333.32", height = "350">
             </div>
             <p></p><p></p>
         </div>
@@ -473,7 +582,7 @@ def main():
             <p>The Ellen Show is an American daytime television variety comedy talk show hosted by Ellen DeGeneres. It has been running for <b>19 seasons</b> and has won numerous awards, including 11 Daytime Emmys for Outstanding Talk Show Entertainment. Katy Perry is an American singer, songwriter, and television personality. She is one of the best-selling music artists of all time, with over <b>143 million records sold worldwide</b>. She has nine U.S. number one singles and has received various accolades, including five American Music Awards and a Brit Award</p>
             <div class="rounded-images">
                 <img src="https://m.media-amazon.com/images/M/MV5BODA5ZDQyMzYtZWQwMy00MDQ1LWE2OGUtNGYyNTk0Y2NhZGM4XkEyXkFqcGdeQXVyMTkzODUwNzk@._V1_.jpg" alt="The Ellen Show" width="333" height = "450">
-                <img src="https://m.media-amazon.com/images/M/MV5BMjE4MDI3NDI2Nl5BMl5BanBnXkFtZTcwNjE5OTQwOA@@._V1_.jpg" alt="Katy Perry" width="333" height = "450">
+                <img src="https://m.media-amazon.com/images/M/MV5BMjE4MDI3NDI2Nl5BMl5BanBnXkFtZTcwNjE5OTQwOA@@._V1_.jpg" alt="Katy Perry" width="333.32" height = "450">
             </div>
             <p></p><p></p>
         </div>
@@ -483,7 +592,7 @@ def main():
             <p>Techno Gamers is an Indian gaming YouTuber who creates videos of gameplays and live streams of <b>GTA 5</b>, <b>Minecraft</b>, <b>Call of Duty</b>, and more. He has <b>over 37 million subscribers</b> and is one of the most popular gamers in India. Kimberly Loaiza is a Mexican internet personality and singer who started her YouTube career in 2016. She is currently the seventh most-followed user on TikTok and has over <b>40 million subscribers</b> on YouTube. She also has a music career and has released several singles, such as <em><b>Enamorarme</b>, <b>Patán</b></em>, and <em><b>Kitty</b></em>.</p>
             <div class="rounded-images">
                 <img src="https://img.gurugamer.com/resize/740x-/2021/04/02/youtuber-ujjwal-techno-gamerz-3aa0.jpg" alt="Techno Gamerz" width="333" height = "450">
-                <img src="https://m.media-amazon.com/images/I/71G48FB73WL._AC_UF1000,1000_QL80_.jpg" alt="Kimberly Loaiza" width="333" height = "450">
+                <img src="https://m.media-amazon.com/images/I/71G48FB73WL._AC_UF1000,1000_QL80_.jpg" alt="Kimberly Loaiza" width="333.32" height = "450">
             </div>
             <p></p><p></p>
         </div>
@@ -493,7 +602,7 @@ def main():
             <p>SSSniperWolf is a British-American YouTuber who is known for her gaming and reaction videos. She has over <b>30 million subscribers</b> and is one of the most-watched female gamers on YouTube. JackSepticEye is an Irish YouTuber who is also known for his gaming and vlog videos. He has over <b>27 million subscribers</b> and is one of the most influential Irish online personalities. He has also appeared in the film Free Guy and released a biographical documentary called <b><em>How Did We Get Here?</em></b></p>
             <div class="rounded-images">
                 <img src="https://ih1.redbubble.net/image.2189561281.9428/mwo,x1000,ipad_2_skin-pad,750x1000,f8f8f8.u1.jpg" alt="SSSniper Wolf" width="333" height = "400">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Jacksepticeye_by_Gage_Skidmore.jpg/1200px-Jacksepticeye_by_Gage_Skidmore.jpg" alt="JackSepticEye" width="333" height = "400">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Jacksepticeye_by_Gage_Skidmore.jpg/1200px-Jacksepticeye_by_Gage_Skidmore.jpg" alt="JackSepticEye" width="333.32" height = "400">
             </div>
             <p></p><p></p>
         </div>
@@ -503,7 +612,7 @@ def main():
             <p>JessNoLimit is an Indonesian gaming YouTuber and Instagram star who is known for his Mobile Legends gameplays. He has over <b>42 million subscribers</b> and is the <b>third most-subscribed YouTuber in Indonesia</b>. Daddy Yankee is a Puerto Rican rapper, singer, songwriter, and actor who is considered the <b><em>"King of Reggaeton"</em></b>. He has sold over <b>30 million records worldwide</b> and has won numerous awards, including five Latin Grammy Awards and two Billboard Music Awards. He is best known for his hit songs like <em><b>Gasolina</b>, <b>Despacito</b></em>, and <em><b>Con Calma</b></em>.</p>
             <div class="rounded-images">
                 <img src="https://akcdn.detik.net.id/visual/2023/05/05/jess-no-limit-dan-sisca-kohl-2_43.png?w=650&q=90" alt="JessNoLimit" width="333" height = "300">
-                <img src="https://people.com/thmb/eT6A-wncUzuDs-XV08qRSd_gSUk=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc():focal(688x281:690x283)/Daddy-Yankee-Retirement-120623-a855484297944821ad14c8b98453b6a5.jpg" alt="Daddy Yankee" width="333" height = "300">
+                <img src="https://people.com/thmb/eT6A-wncUzuDs-XV08qRSd_gSUk=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc():focal(688x281:690x283)/Daddy-Yankee-Retirement-120623-a855484297944821ad14c8b98453b6a5.jpg" alt="Daddy Yankee" width="333.32" height = "300">
             </div>
         </div>
 
