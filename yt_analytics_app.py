@@ -435,13 +435,25 @@ def main():
 
     data = get_csv_from_url()
 
-    intro = st.markdown(
-        """
-        # <div style="font-size: 75px; font-family: 'Cambria', 'sans-serif'; text-align: left; color: brown; border-style: solid; border-width: 5px; border-radius: 10px; border-color: gray; padding: 20px; box-shadow: 5px 5px 10px grey;"><b>YouTube Channel Recommendation App</b></div>
+    col1, col2 = st.columns([.7, .3])
 
-        <p></p><p></p>
-        """,
-        unsafe_allow_html=True
+    col1.markdown(
+        """
+        # <div style = "font-size: 75px; font-family: 'cooper black', 'sans-serif'; text-align: left;"><b>YouTube Channel Tip App</b></div>
+        """, unsafe_allow_html = True
+    )
+    col2.markdown(
+        """
+        <div style = "text-align: top;">
+        <img src = "https://cdn-icons-png.flaticon.com/256/1384/1384060.png" width = "300" height = "300" alt = "YouTube Logo"></div>
+        """
+        , unsafe_allow_html = True
+    )
+    st.markdown(
+        """
+        <div style = "padding: 20px;"></div>
+        """
+        , unsafe_allow_html = True
     )
 
 
