@@ -335,7 +335,7 @@ def extract_channel_info(url: str, category: str):
     except FileNotFoundError:
         st.write('Error: API key file not found in current directory')
     except Exception as e:
-        st.write(e)
+        st.write(f'An error occured: {e}')
 
 
 
@@ -394,7 +394,7 @@ def score_model(data: pd.core.frame.DataFrame, model, model_params: dict, scaled
         return model_valid
 
     except Exception as e:
-        return e
+        st.write(f'An error occured: {e}')
 
 
 #@st.cache_data()
@@ -439,7 +439,7 @@ def make_predictions(df: pd.core.frame.DataFrame, model, yt_channel_df, scaled =
         return prediction[-1]
 
     except Exception as e:
-        st.write(e)
+        st.write(f'An error occured: {e}')
 
 #st.cache_data()
 def generate_recommendations(df: pd.core.frame.DataFrame, yt_channel_df, model, scaled=False, encoded=False):
@@ -576,8 +576,7 @@ def generate_recommendations(df: pd.core.frame.DataFrame, yt_channel_df, model, 
             """
     }
 
-    return cluster_descriptions.get(result, "Oops, no specific information available for your cluster. 🥲")
-
+    return cluster_descriptions.get(result, f"Oops, no specific information available for your cluster 🫤\n Make sure your channel's statistics like Country, etc. are properly recorded in your channel's info")
 
 
 
@@ -901,6 +900,8 @@ def main():
 
     with st.form(key = 'channel-url-form'):
         yt_url = st.text_input(label = '**Channel URL goes here** _( please remove any quotation marks from URL)_')
+
+        st.write("Not sure how to get the link? Visit [this page](https://www.wikihow.com/Find-Your-YouTube-URL)")
 
 
         st.write("Try any of these as examples (just copy into link section):")
