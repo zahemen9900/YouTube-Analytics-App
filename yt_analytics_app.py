@@ -188,19 +188,34 @@ continent_mapping = {
 #function to retrieve youtube channel info
 @st.cache_data
 def extract_channel_info(url: str, category: str):
+    """
+    Extracts information about a YouTube channel, including subscriber count, country, continent, and video statistics.
+
+    Parameters:
+    - url (str): The URL of the YouTube channel.
+    - category (str): The category or genre of the YouTube channel.
+
+    Returns:
+    - pd.DataFrame: A DataFrame containing information about the YouTube channel.
+
+    This function queries the YouTube API to retrieve details about the specified channel, such as the channel's
+    username, number of subscribers, country, continent, and average visits and likes for the latest 50 videos.
+    The data is presented in a DataFrame for further analysis, and additional information is displayed using
+    Streamlit for a user-friendly interface.
+
+    Note: The API key should be stored in a file named 'api_key_lu.txt' in the same directory as this script.
+
+    Example:
+    >>> df = extract_channel_info("https://www.youtube.com/channel/UCxyz123", "Technology")
+    """
+
     try:
-        try:
-            api_file_path = f'{os.path.dirname(os.path.abspath(__file__))}' + r"\api_key_lu.txt"
-            
-            with open(api_file_path, 'r') as api_file:
-                api_key = api_file.read().strip()
-        except:
-            st.error('Error: Key filepath not found. Will proceed to use local API')
-            api_key = "AIzaSyDav9HHtsJITm6ti_zLdUrhlsWpIDRbmLs"
+        api_key = st.secrets['yt_api_key']['api_key']
     
         api_service_name = 'youtube'
         api_version = 'v3'
 
+        url = url.strip('"') #In case of quotation marks
         youtube = build(
             api_service_name, api_version, developerKey = api_key
         )
@@ -215,8 +230,9 @@ def extract_channel_info(url: str, category: str):
 
         for item in response['items']:
             yt_name = item['snippet']['title']
+            yt_thumbnail_url = item['snippet']['thumbnails']['high']['url'] #to get the channel's thumbnail picture
             country_name = country_abbreviations.get(item['snippet']['country'], 'Unknown Country')
-            uploads_id = item['contentDetails']['relatedPlaylists']['uploads']
+
             data = {
                 'Username': item['snippet']['title'],
                 'Subscribers': item['statistics']['subscriberCount'],
@@ -228,7 +244,6 @@ def extract_channel_info(url: str, category: str):
 
         # Since the YouTube API for channels can't retrieve video info, we need to make a separate query to get the averga visits and Likes for our channel
 
-        # Using HTML POST Method to get the channel statistics bc the YouTube API didn't have all that info
         referrer = "https://youtube-analytics-app-zahemen9900.streamlit.app/" # Replace this with your own domain name
 
         # Define the request URL and the headers
@@ -291,6 +306,9 @@ def extract_channel_info(url: str, category: str):
                  ##### Hey _**{yt_name}**_, 
                  glad to have you here!
                  """)
+
+
+        channel_thumbnail = st.image(yt_thumbnail_url, caption = yt_name)
 
         with st.expander('**Expand to see all your channel info**'):
             st.write('##### _**`channel_info`**_')
