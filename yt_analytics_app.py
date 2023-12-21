@@ -1,4 +1,6 @@
 import time
+import os
+import requests
 import streamlit as st
 import pandas as pd
 import seaborn as sns
@@ -7,13 +9,13 @@ from sklearn.metrics import accuracy_score
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
 from warnings import simplefilter
+from googleapiclient.discovery import build
+
 
 simplefilter('ignore')
 
+@st.cache_data
 def get_csv_from_url(url = r"https://raw.githubusercontent.com/zahemen9900/YouTube-Analytics-App/main/YouTube%20Data%20EDA/yt_cluster_data.csv"):
     df = pd.read_csv(url)
     return df
@@ -136,9 +138,188 @@ def make_pairplot():
     fig2 = sns.pairplot(data[['Subscribers', 'Likes', 'Visits', 'Cluster']], hue='Cluster', palette='coolwarm')
     st.pyplot(plt.gcf())
 
-        
+
+
 
 # Model Evaluation functions
+    
+country_abbreviations = {
+    'Unknown': 'Unknown', 'US': 'United States', 'IN': 'India', 'BR': 'Brazil', 'MX': 'Mexico', 'RU': 'Russia',
+    'PK': 'Pakistan', 'PH': 'Philippines', 'ID': 'Indonesia', 'TH': 'Thailand', 'FR': 'France', 'CO': 'Colombia',
+    'IQ': 'Iraq', 'JP': 'Japan', 'EC': 'Ecuador', 'AR': 'Argentina', 'TR': 'Turkey', 'SA': 'Saudi Arabia',
+    'SV': 'El Salvador', 'BD': 'Bangladesh', 'GB': 'United Kingdom', 'DZ': 'Algeria', 'ES': 'Spain', 'PE': 'Peru',
+    'EG': 'Egypt', 'JO': 'Jordan', 'MA': 'Morocco', 'SG': 'Singapore', 'SO': 'Somalia', 'CN': 'China', 'CA': 'Canada',
+    'AU': 'Australia', 'KR': 'South Korea', 'DE': 'Germany', 'NG': 'Nigeria', 'ZA': 'South Africa', 'IT': 'Italy',
+    'VN': 'Vietnam', 'NL': 'Netherlands', 'CL': 'Chile', 'MY': 'Malaysia', 'GR': 'Greece', 'SE': 'Sweden',
+    'CH': 'Switzerland', 'AT': 'Austria', 'NO': 'Norway', 'DK': 'Denmark', 'NZ': 'New Zealand', 'IE': 'Ireland',
+    'PT': 'Portugal', 'CZ': 'Czech Republic', 'HU': 'Hungary', 'PL': 'Poland', 'RO': 'Romania', 'UA': 'Ukraine',
+    'BE': 'Belgium', 'AZ': 'Azerbaijan', 'KZ': 'Kazakhstan', 'UZ': 'Uzbekistan', 'IL': 'Israel', 'IS': 'Iceland',
+    'FI': 'Finland', 'FJ': 'Fiji', 'PG': 'Papua New Guinea', 'SB': 'Solomon Islands', 'VU': 'Vanuatu', 'TO': 'Tonga',
+    'WS': 'Samoa', 'TV': 'Tuvalu', 'KI': 'Kiribati', 'MH': 'Marshall Islands', 'PW': 'Palau', 'FM': 'Micronesia',
+    'NR': 'Nauru', 'TL': 'East Timor',
+}
+    
+continent_mapping = {
+    'Unknown': 'Unknown',
+    'United States': 'North America', 'India': 'Asia', 'Brazil': 'South America', 'Mexico': 'North America',
+    'Russia': 'Europe', 'Pakistan': 'Asia', 'Philippines': 'Asia', 'Indonesia': 'Asia', 'Thailand': 'Asia',
+    'France': 'Europe', 'Colombia': 'South America', 'Iraq': 'Asia', 'Japan': 'Asia', 'Ecuador': 'South America',
+    'Argentina': 'South America', 'Turkey': 'Asia', 'Saudi Arabia': 'Asia', 'El Salvador': 'North America',
+    'Bangladesh': 'Asia', 'United Kingdom': 'Europe', 'Algeria': 'Africa', 'Spain': 'Europe', 'Peru': 'South America',
+    'Egypt': 'Africa', 'Jordan': 'Asia', 'Morocco': 'Africa', 'Singapore': 'Asia', 'Somalia': 'Africa',
+    'China': 'Asia', 'Canada': 'North America', 'Australia': 'Oceania', 'South Korea': 'Asia', 'Germany': 'Europe',
+    'Nigeria': 'Africa', 'South Africa': 'Africa', 'Italy': 'Europe', 'Vietnam': 'Asia', 'Netherlands': 'Europe',
+    'Chile': 'South America', 'Malaysia': 'Asia', 'Greece': 'Europe', 'Sweden': 'Europe', 'Switzerland': 'Europe',
+    'Austria': 'Europe', 'Norway': 'Europe', 'Denmark': 'Europe', 'New Zealand': 'Oceania', 'Ireland': 'Europe',
+    'Portugal': 'Europe', 'Czech Republic': 'Europe', 'Hungary': 'Europe', 'Poland': 'Europe', 'Romania': 'Europe',
+    'Ukraine': 'Europe', 'Belgium': 'Europe', 'Azerbaijan': 'Asia', 'Kazakhstan': 'Asia', 'Uzbekistan': 'Asia',
+    'Israel': 'Asia', 'Iceland': 'Europe', 'Finland': 'Europe', 'Argentina': 'South America', 'Brazil': 'South America',
+    'Colombia': 'South America', 'Mexico': 'North America', 'Peru': 'South America', 'Venezuela': 'South America',
+    'Cuba': 'North America', 'Jamaica': 'North America', 'Honduras': 'North America', 'Nicaragua': 'North America',
+    'Panama': 'North America', 'Guatemala': 'North America', 'Costa Rica': 'North America', 'Bolivia': 'South America',
+    'Paraguay': 'South America', 'Uruguay': 'South America', 'Guyana': 'South America', 'Suriname': 'South America',
+    'French Guiana': 'South America', 'Ecuador': 'South America', 'Chile': 'South America', 'Fiji': 'Oceania',
+    'Papua New Guinea': 'Oceania', 'Solomon Islands': 'Oceania', 'Vanuatu': 'Oceania', 'Tonga': 'Oceania',
+    'Samoa': 'Oceania', 'Tuvalu': 'Oceania', 'Kiribati': 'Oceania', 'Marshall Islands': 'Oceania', 'Palau': 'Oceania',
+    'Micronesia': 'Oceania', 'Nauru': 'Oceania', 'East Timor': 'Asia'
+}
+
+
+#function to retrieve youtube channel info
+@st.cache_data
+def extract_channel_info(url: str, category: str):
+    try:
+        try:
+            api_file_path = f'{os.path.dirname(os.path.abspath(__file__))}' + r"\api_key_lu.txt"
+            
+            with open(api_file_path, 'r') as api_file:
+                api_key = api_file.read().strip()
+        except:
+            st.error('Error: Key filepath not found. Will proceed to use local API')
+            api_key = "AIzaSyDav9HHtsJITm6ti_zLdUrhlsWpIDRbmLs"
+    
+        api_service_name = 'youtube'
+        api_version = 'v3'
+
+        youtube = build(
+            api_service_name, api_version, developerKey = api_key
+        )
+
+        channel_id = url.split('/')[-1]  #the part of a channel's URL after the last '/' is the channel_id
+        request = youtube.channels().list(
+            part = 'snippet, contentDetails, statistics', 
+            id = str(channel_id)
+        )
+        response = request.execute()
+
+
+        for item in response['items']:
+            yt_name = item['snippet']['title']
+            country_name = country_abbreviations.get(item['snippet']['country'], 'Unknown Country')
+            uploads_id = item['contentDetails']['relatedPlaylists']['uploads']
+            data = {
+                'Username': item['snippet']['title'],
+                'Subscribers': item['statistics']['subscriberCount'],
+                'Categories': category,
+                'Country': country_name, 
+                'Continent': continent_mapping.get(country_name, 'Unknown Continent')
+            }
+
+
+        # Since the YouTube API for channels can't retrieve video info, we need to make a separate query to get the averga visits and Likes for our channel
+
+        # Using HTML POST Method to get the channel statistics bc the YouTube API didn't have all that info
+        referrer = "https://youtube-analytics-app-zahemen9900.streamlit.app/" # Replace this with your own domain name
+
+        # Define the request URL and the headers
+
+        vid_request_url = f"https://www.googleapis.com/youtube/v3/search?key={api_key}&channelId={channel_id}&part=snippet,id&order=date&maxResults=50"
+        headers = {"Referer": referrer}
+
+        # Make the GET request and print the response
+        response_ = requests.get(vid_request_url, headers = headers)
+        print('Status code is {}'.format(response_.status_code))
+
+        vid_data = response_.json()
+
+        video_titles, video_ids = [], []   #instantiate empty arrays to collect the video titles and ids
+
+        # Loop through the items list
+        for item in vid_data["items"]:
+            # Get the video ID and title from the snippet dictionary
+            video_id = item["id"]["videoId"]
+            video_title = item["snippet"]["title"]
+
+            # Append a tuple of video ID and title to the videos list
+            video_titles.append(video_title)
+            video_ids.append(video_id)
+
+
+        request2 = youtube.videos().list(
+            part = 'statistics',
+            id = ','.join(video_ids) # A comma-separated list of video IDs
+        )
+        response2 = request2.execute()
+
+        n_visits, n_likes = 0, 0
+        # Sum up the like counts for the videos in the current page
+        for item in response2['items']:
+            n_visits += int(item['statistics']['viewCount'])
+            n_likes += int(item['statistics']['likeCount'])
+
+        n_visits /= 50
+        n_likes /= 50
+
+        data.update({
+            'Visits': n_visits,
+            'Likes': n_likes
+        })
+
+        yt_channel_df  = pd.DataFrame(data, index = [0])
+        yt_channel_df.reindex(['Username', 'Subscribers', 'Category', 'Country', 'Continent', 'Visits', 'Likes']) #make sure the columns are arranged properly
+        yt_channel_df = yt_channel_df.astype({
+                                  'Username': 'object',
+                                  'Subscribers': 'int64',
+                                  'Categories': 'object',
+                                  'Country': 'object',
+                                  'Continent': 'object',
+                                  'Visits': 'int64',
+                                  'Likes': 'int64'
+                              })
+
+        st.write(f"""
+                 ##### Hey _**{yt_name}**_, 
+                 glad to have you here!
+                 """)
+
+        with st.expander('**Expand to see all your channel info**'):
+            st.write('##### _**`channel_info`**_')
+            st.write(response)
+
+        st.write("##### Here's a summary of the relevant info:")
+        st.write(yt_channel_df)
+
+        with st.expander("_**Expand to see Videos we used**_"):
+            formatted_titles = ' '.join([f'<li><b>{title}</b></li>' for title in video_titles])
+            st.markdown(
+                f"""
+                ##### Here's a list of your latest 50 videos:
+                ---
+                <ul>
+                {formatted_titles}
+                </ul>
+                """, unsafe_allow_html = True)
+
+        return yt_channel_df
+    
+
+
+    except FileNotFoundError:
+        st.write('Error: API key file not found in current directory')
+    except Exception as e:
+        st.write(e)
+
+
 
         
 def score_model(data: pd.core.frame.DataFrame, model, model_params: dict, scaled = False, encoded = False):
@@ -199,7 +380,7 @@ def score_model(data: pd.core.frame.DataFrame, model, model_params: dict, scaled
 
 
 #@st.cache_data()
-def make_predictions(df: pd.core.frame.DataFrame, model, scaled = False, encoded = False, **yt_channel_kwargs):
+def make_predictions(df: pd.core.frame.DataFrame, model, yt_channel_df, scaled = False, encoded = False):
 
     """
     Generates predictions for a YouTube channel using a trained machine learning model.
@@ -216,11 +397,10 @@ def make_predictions(df: pd.core.frame.DataFrame, model, scaled = False, encoded
     """
 
     try:
-        channel_data = pd.DataFrame(yt_channel_kwargs, index = [0])
-        channel_data.rename_axis('Rank', inplace = True)
+        yt_channel_df.rename_axis('Rank', inplace = True)
 
-        if all([col in df.columns for col in channel_data.columns]):
-            data = pd.concat([df, channel_data], axis = 0, ignore_index = True)
+        if all([col in df.columns for col in yt_channel_df.columns]):
+            data = pd.concat([df, yt_channel_df], axis = 0, ignore_index = True)
         else:
             raise ValueError('Error: check that Input arguments match original dataframe columns.')
     
@@ -241,12 +421,12 @@ def make_predictions(df: pd.core.frame.DataFrame, model, scaled = False, encoded
         return prediction[-1]
 
     except Exception as e:
-        return e
+        st.write(e)
 
 #st.cache_data()
-def generate_recommendations(df: pd.core.frame.DataFrame, model, scaled=False, encoded=False, **yt_channel_kwargs):
+def generate_recommendations(df: pd.core.frame.DataFrame, yt_channel_df, model, scaled=False, encoded=False):
 
-    result = make_predictions(df, model, scaled=False, encoded=False, **yt_channel_kwargs)
+    result = make_predictions(df, model, yt_channel_df, scaled=False, encoded=False)
 
     cluster_descriptions = {
             1:  """\
@@ -382,12 +562,16 @@ def generate_recommendations(df: pd.core.frame.DataFrame, model, scaled=False, e
 
 
 
+
+
+
+
 def main():
     global data, channel_name  # Make 'data' and 'channel_name' accessible globally
 
     #creating the side-bar
 
-    st.set_page_config(initial_sidebar_state="collapsed")
+    st.set_page_config(initial_sidebar_state="expanded")
     with st.sidebar:
         st.markdown(
             """
@@ -396,7 +580,6 @@ def main():
                 font-family: Arial, Helvetica, sans-serif;
                 font-size: 24px;
                 font-weight: bold;
-                color: gray;
             }
             ul {
                 list-style: none;
@@ -418,14 +601,15 @@ def main():
                 color: brown;
             }
             </style>
-            <h1>Table of Contents</h1>
+            <h1 style = "color: gray;">Table of Contents</h1>
             <ul>
-                <li><b>🔗<a href="#youtube-channel-recommendation-app">Intro </a></b></li>
+                <li><b>🔗<a href="#youtube-channel-tip-app">Intro </a></b></li>
                 <li><b>🔗<a href="#some-summary-statistics-on-the-data-used-based-on-different-categories">Summary Statistics </a></b></li>
                 <li><b>🔗<a href="#a-summary-plot-for-metric-correlations-and-distributions">Pairplot Summary And Explanations </a></b></li>
                 <li><b>🔗<a href="#pewdiepie-mr-beast-category-3">Top YouTubers in Each Category </a></b></li>
                 <li><b>🔗<a href="#b40e990">Results from Model Training </a></b></li>
-                <li><b>🔗<a href="#enter-your-channel-metrics">Recommendations Section </a></b></li>
+                <li><b>🔗<a href="#enter-your-channel-link-below">Recommendations Section (by channel URL)</a></b></li>
+                <li><b>🔗<a href="#or-enter-your-details-manually-below">Recommendations Section(manual) </a></b></li>
                 <li><b>🔗<a href="#more-on-data-used">About Data </a></b></li>
             </ul>
             """,
@@ -435,13 +619,25 @@ def main():
 
     data = get_csv_from_url()
 
-    intro = st.markdown(
-        """
-        # <div style="font-size: 75px; font-family: 'Cambria', 'sans-serif'; text-align: left; color: brown; border-style: solid; border-width: 5px; border-radius: 10px; border-color: gray; padding: 20px; box-shadow: 5px 5px 10px grey;"><b>YouTube Channel Recommendation App</b></div>
+    col1, col2 = st.columns([.7, .3])
 
-        <p></p><p></p>
-        """,
-        unsafe_allow_html=True
+    col1.markdown(
+        """
+        # <div style = "font-size: 75px; font-family: 'cooper black', 'sans-serif'; text-align: left;"><b>YouTube Channel Tip App</b></div>
+        """, unsafe_allow_html = True
+    )
+    col2.markdown(
+        """
+        <div style = "text-align: top;">
+        <img src = "https://cdn-icons-png.flaticon.com/256/1384/1384060.png" width = "300" height = "300" alt = "YouTube Logo"></div>
+        """
+        , unsafe_allow_html = True
+    )
+    st.markdown(
+        """
+        <div style = "padding: 20px;"></div>
+        """
+        , unsafe_allow_html = True
     )
 
 
@@ -488,7 +684,8 @@ def main():
 
     st.write(
         """
-        #### A Summary plot for Metric correlations and distributions :
+        #### A Summary plot for Metric correlations and distributions 
+        ---
         """
     )
 
@@ -636,7 +833,7 @@ def main():
 
     st.write(
         """
-        You might be curious about how we're generating the awesome recommendations for you. Well, the secret is a powerful machine learning model! We used **`Random Forest Regressor`** from Scikit-Learn, and with some clever hyperparameter-tuning with **`GridSearchCV`**, we achieved some amazing results! 🙌
+        You might be curious about how we're generating the awesome recommendations for you. Well, the secret is **a powerful machine learning model**! We used **`Random Forest Regressor`** from Scikit-Learn, and with some clever hyperparameter-tuning with **`GridSearchCV`**, we achieved some amazing results! 🙌
         Here are some highlights from our training process:
         """
     )
@@ -655,6 +852,18 @@ def main():
     st.write("Check out the data we used [here](https://github.com/zahemen9900/YouTube-Analytics-App/blob/main/YouTube%20Data%20EDA/yt_cluster_data.csv)")
   
 
+
+    st.markdown(
+        """
+        <div style="padding: 20px;"><p style = "font-size: 15px;"><em>....And finally, the moment you've been waiting for; </em></p><p style = "font-size: 20px;"><b>Proceed below to check your recommendations!⏬</b></div>
+
+        <p></p><p></p>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+
     popular_countries = [
         'United States', 'India', 'Brazil', 'Mexico', 'Russia', 'Pakistan', 'Philippines', 'Indonesia',
         'Thailand', 'France', 'Colombia', 'Iraq', 'Japan', 'Ecuador', 'Argentina', 'Turkey', 'Saudi Arabia',
@@ -670,60 +879,114 @@ def main():
     ]
 
 
+    st.header("Enter your channel link below")
 
-    st.markdown(
-        """
-        <div style="padding: 20px;"><p style = "font-size: 15px;"><em>....And finally, the moment you've been waiting for; </em></p><p style = "font-size: 20px;"><b>Proceed below to check your recommendations!⏬</b></div>
+    with st.form(key = 'channel-url-form'):
+        yt_url = st.text_input(label = '**Channel URL goes here** _( please remove any quotation marks from URL)_')
 
-        <p></p><p></p>
-        """,
-        unsafe_allow_html=True
-    )
 
-    st.header("Enter your channel Metrics")
+        st.write("Try any of these as examples (just copy into link section):")
+
+        st.write({
+            'channel_url': 'www.youtube.com/channel/UCBJycsmduvYEL83R_U4JriQ',
+            'category': 'Technology'
+        })
+
+        '_**or**_'
+        
+        st.write({
+            'channel_url': 'https://www.youtube.com/channel/UCv8G-xZ_BBGufjbN6jbvLMQ',
+            'category': 'Comedy'
+        })
+
+        selected_cat = st.radio("#### **Choose your channel category**", ("Animation", "Toys", "Movies", "Video Games", "Music and Dance",
+                                    "News and Politics", "Fashion", "Animals and Pets", "Education",
+                                    "DIY and Life Hacks", "Fitness", "ASMR", "Comedy", "Technology", "Automobiles"))
+
+        submit_btn = st.form_submit_button('Submit', help = 'Submit to see your channel ')
+
+        while submit_btn:
+            if not (yt_url.startswith('https://www.youtube.com/channel/') or yt_url.startswith('www.youtube.com/channel/') or yt_url.startswith('https://youtube.com/channel/') or yt_url.startswith('youtube.com/channel/')):
+                st.error('Please enter a valid channel URL. Also make sure your link does not contain quotation marks')
+                break
+            else:
+                st.success('Url received!')
+                with st.spinner('Retrieving channel info...'):
+                    time.sleep(1.5)
+                new_channel_df = extract_channel_info(yt_url, selected_cat)
+
+                with st.spinner('Getting your recommendations...'):
+                    time.sleep(1)
+
+                recs = generate_recommendations(df = data, yt_channel_df= new_channel_df, model = rf_model)
+
+                st.write(recs)
+                break
+
+
+
+    st.write("### Or enter your details manually below")
 
 #    formbtn = st.button("Form")
 
-    if "formbtn_state" not in st.session_state:
-        st.session_state.formbtn_state = False
+    with st.expander("**Expand to enter your info manually**"):
+        if "formbtn_state" not in st.session_state:
+            st.session_state.formbtn_state = False
 
-    if st.session_state.formbtn_state:
-        st.session_state.formbtn_state = True
+        if st.session_state.formbtn_state:
+            st.session_state.formbtn_state = True
 
-    with st.form(key="channel_form"):
+        with st.form(key="channel_form"):
 
-        channel_name = st.text_input('What is your channel name?', 'eg. zahemen9900')
-        st.write("Select the category of your videos:")
-        selected_category = st.radio("Options", ("Animation", "Toys", "Movies", "Video Games", "Music and Dance",
-                                          "News and Politics", "Fashion", "Animals and Pets", "Education",
-                                          "DIY and Life Hacks", "Fitness", "ASMR", "Comedy", "Technology", "Automobiles"))
+            channel_name = st.text_input('What is your channel name?', 'eg. zahemen9900')
+            st.write("Select the category of your videos:")
+            selected_category = st.radio("Options", ("Animation", "Toys", "Movies", "Video Games", "Music and Dance",
+                                            "News and Politics", "Fashion", "Animals and Pets", "Education",
+                                            "DIY and Life Hacks", "Fitness", "ASMR", "Comedy", "Technology", "Automobiles"))
 
-        selected_country = st.selectbox("Select your country", popular_countries)
+            selected_country = st.selectbox("Select your country", popular_countries)
 
-        selected_continent = st.selectbox("Select your Continent", data['Continent'].unique())
+            default_continent = continent_mapping.get(selected_country, 'Unknown')
 
-        n_visits = st.slider("Number of Visits", min_value=0, max_value=int(10e6), value=5000)
-        n_likes = st.slider("Average Likes per video", min_value=0, max_value=int(1e6), value=2500)
-        n_subs = st.slider("Number of Subscribers on your channel", min_value=0, max_value=int(5e6), value= int(50e3))
+            continents = data['Continent'].unique()
+            continents = [continent for continent in continents]
 
-        submit_button = st.form_submit_button(label="Submit", help = 'Submit to see your recommendations!')
+            # Get the index of the default continent in the list of continents
+            # If the default continent is not in the list, use 0 as the index
+            default_index = continents.index(default_continent) if default_continent in continents else 0
 
-
-
-
-        if submit_button:
-            st.success('Form submitted, Results are underway!')
-            time.sleep(0.5)
-
-            with st.spinner('Loading recomendations'):
-                time.sleep(2)
-
-            personalized = generate_recommendations(df = data, model = rf_model,
-                         Username = channel_name, Categories = selected_category, Subscribers = n_subs, Country = selected_country, Continent = selected_continent,
-                          Visits = n_visits, Likes = n_likes)
+            selected_continent = st.selectbox("Select your Continent", continents, index = default_index)
 
 
-            st.write(personalized)
+            n_visits = st.slider("Number of Visits", min_value=0, max_value=int(5e6), value=5000)
+            n_likes = st.slider("Average Likes per video", min_value=0, max_value=int(0.5e6), value=2500)
+            n_subs = st.slider("Number of Subscribers on your channel", min_value=int(10e3), max_value=int(5e6), value= int(50e3))
+
+            submit_button = st.form_submit_button(label="Submit", help = 'Submit to see your recommendations!')
+
+
+
+
+            if submit_button:
+                st.success('Form submitted, Results are underway!')
+                time.sleep(1)
+
+                with st.spinner('Loading recomendations'):
+                    time.sleep(1)
+
+                args =  pd.DataFrame({'Username' : channel_name,
+                        'Categories': selected_category,
+                        'Subscribers': n_subs,
+                        'Country': selected_country,
+                        'Continent' : selected_continent,
+                        'Visits' : n_visits,
+                        'Likes' : n_likes
+                        }, index = [0])
+
+                personalized = generate_recommendations(df = data, model = rf_model, yt_channel_df=args)
+
+
+                st.write(personalized)
 
 
     st.markdown(
