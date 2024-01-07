@@ -23,8 +23,6 @@ Our app dives deep into the sea of YouTube data, making sense of your likes, sub
 
 **Ready to Level Up? Check it Out! 👇**
 
-🚀 [YouTube Analytics & Recommendations App](https://youtube-analytics-app-zahemen9900.streamlit.app/) - Your gateway to YouTube stardom!
+🚀Check out the Improved [YouTube Recommendations & Analytics App](https://yt-analyticsapp-z.streamlit.app/) - Your gateway to YouTube stardom!
 
-**Pssst...** Curious about the nitty-gritty? Dive into the Jupyter Notebook on the main branch for an insider's look at the analysis behind the scenes, or just click [here](https://github.com/zahemen9900/YouTube-Analytics-App/blob/main/YouTube_Data_EDA.ipynb).
-
-Thanks for dropping by – can't wait to see your channel soar! 🚀🌟
+Dive into the Jupyter Notebook on the main branch for an insider's look at the analysis behind the scenes, or just click [here](https://github.com/zahemen9900/YouTube-Analytics-App/blob/main/YouTube_Data_EDA.ipynb).
