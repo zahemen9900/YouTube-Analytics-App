@@ -1,34 +1,11 @@
+
 import streamlit as st
 from typing import Union
-import os 
-import joblib
-import numpy as np
-import pandas as pd
-
-import matplotlib.pyplot as plt
-import seaborn as sns
-import plotly.figure_factory as ff
-import plotly.express as px
-import plotly.subplots as sp
-import plotly.graph_objects as go
-
-#to process mail and calls
-import time
 import os
-import re
-import requests
-import smtplib
-from email.mime.text import MIMEText
-from warnings import simplefilter
-from googleapiclient.discovery import build
-
-from sklearn.preprocessing import MinMaxScaler
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-
-
-
-st.session_state['channel_name'] = ''
+import pandas as pd
+"""
+A curated list of utility functions for the Youtube Analytics App
+"""
 
 def get_csv_from_loc(loc = r"https://raw.githubusercontent.com/zahemen9900/YouTube-Analytics-App/main/YouTube%20Data%20EDA/yt_cluster_data.csv"):
     if 'yt_data' not in st.session_state:
@@ -195,7 +172,7 @@ def extract_channel_info(url: str, category: str):
 
 
 
-def load_objects(objects_path = ''):
+def load_objects(folder_name = ''):
     """
     Function to load the objects for inferencing.
     """
